@@ -1,5 +1,5 @@
 use crate::player::Player;
-use bevy::{ecs::query, prelude::*};
+use bevy::prelude::*;
 pub struct CameraPlugin;
 
 const CAMERA_Z_OFFSET: f32 = 14.0;

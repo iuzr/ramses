@@ -1,6 +1,6 @@
-use std::{thread::current, time::Duration};
+use std::time::Duration;
 
-use bevy::{animation, input::keyboard::KeyboardInput, prelude::*};
+use bevy::prelude::*;
 
 pub struct PlayerPlugin;
 
@@ -47,6 +47,7 @@ fn player_movement(
     camera_query: Query<(&Camera, &GlobalTransform)>,
     windows: Query<&Window>,
 ) {
+    // calcolo il punto in coordinate world in cui si trova il mouse
     let (camera, camera_transform) = camera_query.single();
     let Some(cursor_position) = windows.single().cursor_position() else {
         return;
@@ -60,36 +61,25 @@ fn player_movement(
     let point = ray.get_point(distance);
 
     for (mut player_transform, player_speed) in player_query.iter_mut() {
-        let camera_3db = match camera_3db_query.get_single() {
-            Ok(c) => c,
-            Err(e) => Err(format!("Error retrieving camera {}", e)).unwrap(),
-        };
-
         let mut direction: Vec3 = Vec3::ZERO;
 
-        if keys.pressed(KeyCode::W) {
-            direction += point; //camera_3db.forward();
-        }
-        // if keys.pressed(KeyCode::S) {
-        //     direction += camera_3db.back();
-        // }
-        // if keys.pressed(KeyCode::A) {
-        //     direction += camera_3db.left();
-        // }
-        // if keys.pressed(KeyCode::D) {
-        //     direction += camera_3db.right();
-        // }
-
-        direction.y = 0.0;
-        let movement: Vec3 = direction.normalize_or_zero() * player_speed.0 * time.delta_seconds();
-        player_transform.translation += movement;
-
+        // calcolo il punto del mouse rispetto alla posizione del player
         let relative_point = point - player_transform.translation;
+
         player_transform.look_to(-relative_point, Vec3::Y);
         debug!(
             "Player {} - Pointer {}",
             player_transform.translation, point
         );
+
+        if keys.pressed(KeyCode::W) {
+            direction += relative_point; //camera_3db.forward();
+        }
+
+        direction.y = 0.0;
+        let movement: Vec3 = direction.normalize_or_zero() * player_speed.0 * time.delta_seconds();
+        player_transform.translation += movement;
+
         // }
     }
 }
