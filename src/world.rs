@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-
 use std::f32::consts::PI;
 
 pub struct WorldPlugin;
@@ -38,7 +37,7 @@ fn spawn_map(
 ) {
     let floor = (
         PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Plane::from_size(25.0))),
+            mesh: meshes.add(Mesh::from(shape::Plane::from_size(50.0))),
             material: materials.add(Color::DARK_GREEN.into()),
             ..default()
         },
