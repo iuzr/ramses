@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, transform};
 use bevy_rapier3d::dynamics::{GravityScale, RigidBody};
 
 pub struct PlayerPlugin;
@@ -41,7 +41,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     let player = (
         SceneBundle {
             scene: asset_server.load("human.glb#Scene0"),
-            transform: Transform::from_xyz(0.0, 10.0, 0.0), //.with_scale(Vec3::new(0.1, 0.1, 0.1)),
+            transform: Transform::from_xyz(0.0, 2.0, 0.0), //.with_scale(Vec3::new(0.1, 0.1, 0.1)),
             ..default()
         },
         Player,
@@ -53,7 +53,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(RigidBody::Dynamic)
         .insert(player)
-        .insert(GravityScale(0.5));
+        .insert(GravityScale(9.0));
 }
 
 fn player_movement(
@@ -77,30 +77,43 @@ fn player_movement(
     let Some(distance) = ray.intersect_plane(Vec3::ZERO, Vec3::Y) else {
         return;
     };
-    let point = ray.get_point(distance);
+    let mut point = ray.get_point(distance);
 
     for (mut player_transform, player_speed) in player_query.iter_mut() {
-        let mut direction: Vec3 = Vec3::ZERO;
+        point.y = player_transform.translation.y;
+        let player_position = player_transform.translation;
+        let direction = point - player_position;
 
         // calcolo il punto del mouse rispetto alla posizione del player
-        let mut relative_point = point - player_transform.translation;
-        relative_point.y = 0.0;
+        // let mut relative_point = point + player_transform.translation;
+        // relative_point.y = player_transform.translation.y;
 
-        player_transform.look_to(-relative_point, Vec3::Y);
+        // player_transform.look_to(direction, Vec3::Y);
 
         if keys.pressed(KeyCode::W) {
-            direction += relative_point; //camera_3db.forward();
+            let pl_new_trasf = player_transform.forward() * player_speed.0 * time.delta_seconds();
+            //direction += relative_point; //camera_3db.forward();
+            player_transform.translation += pl_new_trasf;
+        }
+        if keys.pressed(KeyCode::A) {
+            player_transform.rotation *= Quat::from_rotation_y(0.01);
+        }
+        if keys.pressed(KeyCode::D) {
+            player_transform.rotation *= Quat::from_rotation_y(-0.01);
         }
 
-        direction.y = 0.0;
-        let movement: Vec3 = direction.normalize_or_zero() * player_speed.0 * time.delta_seconds();
-        player_transform.translation += movement;
+        // let movement: Vec3 = direction.normalize_or_zero() * player_speed.0 * time.delta_seconds();
+        // player_transform.translation += movement;
 
         if log_timing.timer.finished() {
-            debug!(
-                "Player {} - Pointer {}",
-                player_transform.translation, point
-            );
+            // debug!(
+            //     "Player {} - Point {} - Rel point {} - Forward {}",
+            //     player_transform.translation,
+            //     point,
+            //     relative_point,
+            //     player_transform.forward()
+            // );
+            debug!("{}", player_transform.forward());
         }
     }
 }
@@ -112,7 +125,7 @@ fn player_animations(
     mut current_animation: Local<usize>,
 ) {
     for mut player in &mut players {
-        if keyboard_input.any_pressed([KeyCode::W, KeyCode::A, KeyCode::S, KeyCode::D]) {
+        if keyboard_input.any_pressed([KeyCode::W /*KeyCode::A */]) {
             *current_animation = 1;
         } else {
             *current_animation = 0;

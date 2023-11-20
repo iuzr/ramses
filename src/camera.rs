@@ -9,7 +9,7 @@ const CAMERA_X_OFFSET: f32 = 0.0;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_camera);
-        app.add_systems(Update, camera_movements);
+        //app.add_systems(Update, camera_movements);
     }
 }
 
